@@ -653,6 +653,25 @@ def legal_page(slug):
 @login_required
 def checkout_page():
     return render_template("checkout.html", STRIPE_PUBLIC_KEY=STRIPE_PUBLIC_KEY)
+#here
+# --- Health & readiness probes ---
+from flask import jsonify
+import time
+
+@app.route("/health", methods=["GET", "HEAD"])
+def health():
+    return jsonify(status="ok", ts=time.time()), 200
+
+@app.route("/ready", methods=["GET", "HEAD"])
+def ready():
+    # إن أردت فحص قاعدة البيانات بشكل سريع:
+    try:
+        db = get_db()  # إن كانت لديك دالة get_db()
+        db.execute("SELECT 1")
+        return jsonify(status="ready"), 200
+    except Exception as e:
+        return jsonify(status="degraded", error=str(e)), 503
+
 
 # Health
 @app.get("/health")
