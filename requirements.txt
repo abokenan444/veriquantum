@@ -1,17 +1,28 @@
+# ---- core ----
 Flask==2.2.5
 gunicorn==21.2.0
 SQLAlchemy==2.0.32
 psycopg2-binary==2.9.9
 itsdangerous==2.2.0
 requests==2.32.3
+Flask-WTF==1.2.1
+Flask-Limiter==3.5.1
+authlib==1.3.1
+
+# ---- auth/2FA ----
 pyotp==2.9.0
 qrcode==7.4.2
+
+# ---- billing ----
 stripe==5.4.0
-Flask-Limiter==3.5.1
-Flask-WTF==1.2.1
-authlib==1.3.1
+
+# ---- exports/reports ----
+numpy==1.26.4
 pandas==2.2.2
 openpyxl==3.1.5
 XlsxWriter==3.2.0
-xhtml2pdf==0.2.15
+
+# ---- PDF (no system deps) ----
 reportlab==3.6.12
+html5lib==1.1
+xhtml2pdf==0.2.15
