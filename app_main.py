@@ -674,9 +674,9 @@ def ready():
 
 
 # Health
-@app.get("/health")
-def health(): return jsonify(status="ok", db=db_health())
+#@app.get("/health")
+#def health(): return jsonify(status="ok", db=db_health())
 
-if __name__ == "__main__":
-    port = int(os.getenv("PORT","5000"))
-    app.run(host="0.0.0.0", port=port, debug=True)
+#if __name__ == "__main__":
+  #  port = int(os.getenv("PORT","5000"))
+  #  app.run(host="0.0.0.0", port=port, debug=True)
