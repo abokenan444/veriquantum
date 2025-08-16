@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Invoice #{{ inv.id }}</title>
+<style>
+  body { font-family: DejaVu Sans, Arial, sans-serif; color:#222; }
+  .head { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px; }
+  .brand { font-weight:700;font-size:20px;color:#0b5ed7; }
+  .box { border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin:8px 0; }
+  table{ width:100%; border-collapse: collapse; margin-top:12px; }
+  th,td{ border-bottom:1px solid #eee; padding:8px; text-align:left; }
+  .right{ text-align:right; }
+  .muted{ color:#6b7280; font-size:12px; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div>
+      <div class="brand">{{ theme.brand_name or 'VeriQuantum' }}</div>
+      {% if theme.logo_url %}<img src="{{ theme.logo_url }}" style="height:28px;margin-top:6px">{% endif %}
+      <div class="muted">Invoice #{{ inv.id }} • {{ inv.created_at.date() }}</div>
+    </div>
+    <div class="right box">
+      <div><strong>Bill To:</strong> {{ user.username }} ({{ user.email }})</div>
+      {% if org %}<div class="muted">Organization: {{ org.name }}</div>{% endif %}
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Description</th><th class="right">Amount</th></tr>
+    <tr>
+      <td>{{ plan.name }} subscription ({{ sub.billing_cycle }})</td>
+      <td class="right">{{ '%.2f'|format(inv.amount) }} {{ inv.currency }}</td>
+    </tr>
+    <tr><td class="right"><strong>Total</strong></td><td class="right"><strong>{{ '%.2f'|format(inv.amount) }} {{ inv.currency }}</strong></td></tr>
+  </table>
+
+  <div class="box">
+    <div class="muted">
+      Payment method: {{ inv.method|upper }} • Status: {{ inv.status|upper }}
+      {% if inv.bank_reference %} • Bank ref: {{ inv.bank_reference }}{% endif %}
+      {% if inv.stripe_payment_intent %} • Stripe PI: {{ inv.stripe_payment_intent }}{% endif %}
+    </div>
+  </div>
+
+  <p class="muted">This invoice is generated automatically by {{ theme.brand_name or 'VeriQuantum' }}.</p>
+</body>
+</html>

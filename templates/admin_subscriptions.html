@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Subscriptions - Admin{% endblock %}
+{% block content %}
+<h2>Subscriptions</h2>
+<div class="panel">
+  <p class="mt-2">
+  <a class="btn" href="{{ url_for('finance_export_csv') }}">Export CSV</a>
+  <a class="btn btn-secondary" href="{{ url_for('finance_export_xlsx') }}">Export Excel</a>
+</p>
+
+  <table style="width:100%;border-collapse:collapse">
+    <tr style="border-bottom:1px solid #e5e7eb">
+      <th>ID</th><th>User</th><th>Org</th><th>Plan</th><th>Status</th><th>Cycle</th><th>Started</th><th>Ends</th>
+    </tr>
+    {% for s in subs %}
+    <tr style="border-bottom:1px solid #f0f0f0">
+      <td>#{{ s.id }}</td>
+      <td>{{ s.user.username }}</td>
+      <td>{{ s.org.name if s.org else '-' }}</td>
+      <td>{{ s.plan.name }} ({{ s.plan.code }})</td>
+      <td>{{ s.status }}</td>
+      <td>{{ s.billing_cycle }}</td>
+      <td>{{ s.started_at }}</td>
+      <td>{{ s.ends_at or '-' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

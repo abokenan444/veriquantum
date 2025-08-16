@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Sectors - Admin{% endblock %}
+{% block content %}
+<h2>Sectors</h2>
+<div class="panel">
+  <table style="width:100%;border-collapse:collapse">
+    <tr><th>Code</th><th>Name</th><th>Active</th><th>Save</th></tr>
+    {% for s in sectors %}
+    <tr>
+      <form method="post" action="{{ url_for('admin_sectors_save') }}">
+        <input type="hidden" name="id" value="{{ s.id }}">
+        <td><input name="code" value="{{ s.code }}"></td>
+        <td><input name="name" value="{{ s.name }}"></td>
+        <td>
+          <select name="active">
+            <option value="1" {% if s.active %}selected{% endif %}>Yes</option>
+            <option value="0" {% if not s.active %}selected{% endif %}>No</option>
+          </select>
+        </td>
+        <td><button class="btn" type="submit">Save</button></td>
+      </form>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h3 class="mt-2">Add Sector</h3>
+<div class="panel">
+  <form method="post" action="{{ url_for('admin_sectors_save') }}" class="grid-3">
+    <div><label>Code</label><input name="code" placeholder="banks" required></div>
+    <div><label>Name</label><input name="name" placeholder="Banks" required></div>
+    <div><label>Active</label><select name="active"><option value="1">Yes</option><option value="0">No</option></select></div>
+    <div style="grid-column:1/-1"><button class="btn" type="submit">Create</button></div>
+  </form>
+</div>
+{% endblock %}

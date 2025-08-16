@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ name }} Sector - VeriQuantum{% endblock %}
+{% block content %}
+<h2>{{ name }} Sector</h2>
+
+{% if policy_error %}
+  <div class="alert alert-danger">Access blocked: {{ policy_error }}</div>
+{% else %}
+  <div class="panel">
+    <p>Manage and monitor biometric verification for <strong>{{ name }}</strong>.</p>
+    <ul>
+      <li>Live verification dashboard</li>
+      <li>User activity logs</li>
+      <li>Security & compliance reports</li>
+    </ul>
+  </div>
+{% endif %}
+
+<a href="{{ url_for('dashboard') }}" class="btn mt-2">⬅ Back to Dashboard</a>
+{% endblock %}

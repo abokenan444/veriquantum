@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Billing{% endblock %}
+{% block content %}
+<h2>Billing & Invoices</h2>
+<table>
+  <tr>
+    <th>Invoice ID</th>
+    <th>Plan</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Date</th>
+  </tr>
+  {% for invoice in invoices %}
+  <tr>
+    <td>{{ invoice.invoice_id }}</td>
+    <td>{{ invoice.plan_name }}</td>
+    <td>€{{ invoice.amount }}</td>
+    <td>{{ invoice.status }}</td>
+    <td>{{ invoice.date }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

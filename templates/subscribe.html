@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Subscribe{% endblock %}
+{% block content %}
+<h2>Choose Your Subscription Plan</h2>
+<form method="POST">
+  <label>Select Plan:</label>
+  <select name="plan_id" required>
+    {% for plan in plans %}
+      <option value="{{ plan.stripe_price_id }}">{{ plan.name }} - €{{ plan.price }}/month</option>
+    {% endfor %}
+  </select>
+
+  <label>Payment Method:</label>
+  <select name="payment_method" required>
+    <option value="card">Credit/Debit Card</option>
+    <option value="ideal">iDEAL (Netherlands)</option>
+    <option value="bank">Bank Transfer</option>
+  </select>
+
+  <button type="submit" class="btn">Proceed</button>
+</form>
+{% endblock %}

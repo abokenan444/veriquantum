@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Home - VeriQuantum{% endblock %}
+
+{% block content %}
+  <h1>Welcome to VeriQuantum</h1>
+  <p>Your AI-powered platform for secure biometric verification and quantum encryption.</p>
+
+  {% if session.get('user') %}
+    <div class="alert alert-success">
+      Logged in as <strong>{{ session.get('user') }}</strong>.
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn">Go to Dashboard</a>
+  {% else %}
+    <a href="{{ url_for('login_get') }}" class="btn">Login</a>
+    <a href="{{ url_for('register_get') }}" class="btn btn-secondary">Register</a>
+  {% endif %}
+{% endblock %}

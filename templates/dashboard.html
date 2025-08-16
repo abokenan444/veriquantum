@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - VeriQuantum{% endblock %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<p>Welcome, {{ session.get('user') }}! Choose a sector below to start biometric verification and monitoring.</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:20px;">
+  {% for sector_name, sector_url in sectors %}
+    <div style="flex:1 1 200px; background:#fff; padding:16px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+      <h3>{{ sector_name }}</h3>
+      <p>Manage verification and services for the {{ sector_name }} sector.</p>
+      <a href="{{ sector_url }}" class="btn">Enter</a>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

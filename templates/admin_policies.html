@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Policies - VeriQuantum{% endblock %}
+
+{% block content %}
+<h2>Sector Policies</h2>
+<p class="form-help">
+  Configure per-sector policies:
+  <br>• <b>Geo Countries</b> (CSV ISO codes, e.g. <code>SA,AE,QA</code>)
+  <br>• <b>Time Window</b> (UTC range, e.g. <code>08:00-18:00</code>)
+  <br>• <b>Liveness</b> level (<code>low</code>, <code>medium</code>, <code>high</code>)
+</p>
+
+<div class="cards">
+  {% for p in policies %}
+  <div class="card">
+    <h3 style="margin-bottom:10px">{{ p.sector|capitalize }}</h3>
+    <form method="post" action="{{ url_for('admin_policies_save') }}">
+      <input type="hidden" name="id" value="{{ p.id }}">
+
+      <label>Enabled</label>
+      <select name="enabled">
+        <option value="1" {% if p.enabled %}selected{% endif %}>Enabled</option>
+        <option value="0" {% if not p.enabled %}selected{% endif %}>Disabled</option>
+      </select>
+
+      <label class="mt-1">Geo Countries (CSV)</label>
+      <input name="geo_countries_csv" value="{{ p.geo_countries_csv or '' }}" placeholder="SA,AE,QA">
+
+      <label class="mt-1">Time Window (UTC)</label>
+      <input name="time_window" value="{{ p.time_window or '' }}" placeholder="08:00-18:00">
+
+      <label class="mt-1">Liveness Level</label>
+      <select name="liveness_level">
+        {% for L in ["low","medium","high"] %}
+          <option value="{{L}}" {% if p.liveness_level==L %}selected{% endif %}>{{L|capitalize}}</option>
+        {% endfor %}
+      </select>
+
+      <button class="btn mt-2" type="submit">Save</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

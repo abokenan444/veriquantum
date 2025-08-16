@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Alerts Test - VeriQuantum{% endblock %}
+
+{% block content %}
+<h2>Test Alerts</h2>
+<p class="form-help">
+  Send a test message to your configured alert channel. Make sure SMTP (email) or Slack/Telegram are configured in
+  <a href="{{ url_for('admin_settings_get') }}">Admin Settings</a>.
+</p>
+
+<div class="panel" style="max-width:640px;margin:auto">
+  <form id="alertForm" method="post" action="{{ url_for('admin_alerts_test') }}">
+    <label>Channel</label>
+    <select name="channel" required>
+      <option value="email">Email</option>
+      <option value="slack">Slack</option>
+      <option value="telegram">Telegram</option>
+    </select>
+
+    <label class="mt-1">Message</label>
+    <input name="message" placeholder="Test alert message">
+
+    <button class="btn mt-2" type="submit">Send Test</button>
+  </form>
+
+  <div id="alertResult" class="mt-2"></div>
+</div>
+
+<script>
+document.getElementById("alertForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const res = await fetch(e.target.action, { method:"POST", body:fd });
+  const data = await res.json().catch(()=>({ok:false}));
+  const el = document.getElementById("alertResult");
+  el.textContent = data.ok ? "✅ Sent" : "❌ Failed";
+});
+</script>
+{% endblock %}
