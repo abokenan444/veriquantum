@@ -26,3 +26,4 @@ XlsxWriter==3.2.0
 reportlab==3.6.12
 html5lib==1.1
 xhtml2pdf==0.2.15
+cffi==1.16.0
