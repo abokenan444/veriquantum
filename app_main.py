@@ -480,23 +480,38 @@ def stripe_webhook():
                 db.commit()
     return jsonify(ok=True)
 
-from weasyprint import HTML
-@app.get("/billing/invoice/<int:invoice_id>/pdf")
+# --- PDF helpers (xhtml2pdf) ---
+from io import BytesIO
+from flask import make_response, render_template
+from xhtml2pdf import pisa
+
+def render_pdf_from_html(html: str) -> bytes:
+    """Render HTML -> PDF bytes using xhtml2pdf (no system deps)."""
+    pdf_io = BytesIO()
+    result = pisa.CreatePDF(src=html, dest=pdf_io, encoding='utf-8')
+    if result.err:
+        raise RuntimeError("PDF generation failed")
+    return pdf_io.getvalue()
+
+@app.route("/billing/invoice/<int:invoice_id>/pdf")
 @login_required
-def invoice_pdf(invoice_id):
-    with SessionLocal() as db:
-        inv = db.query(Invoice).filter(Invoice.id==invoice_id).first()
-        if not inv: abort(404)
-        sub = db.query(Subscription).filter(Subscription.id==inv.sub_id).first()
-        user = db.query(User).filter(User.id==sub.user_id).first()
-        if user.id != session["uid"] and not session.get("is_admin"): abort(403)
-        plan = db.query(Plan).filter(Plan.id==sub.plan_id).first()
-        org = db.query(Organization).filter(Organization.id==sub.org_id).first() if sub.org_id else None
-        theme = db.get(ThemeSetting, 1)
-        html = render_template("invoice_pdf.html", inv=inv, sub=sub, plan=plan, org=org, user=user, theme=theme)
-    pdf = HTML(string=html).write_pdf()
-    resp = make_response(pdf); resp.headers["Content-Type"]="application/pdf"; resp.headers["Content-Disposition"]=f'inline; filename="invoice_{invoice_id}.pdf"'
+def billing_invoice_pdf(invoice_id):
+    db = get_db()
+    inv = db.execute("SELECT * FROM invoices WHERE id=?", (invoice_id,)).fetchone()
+    if not inv:
+        abort(404)
+    org = db.execute("SELECT * FROM orgs WHERE id=?", (inv["org_id"],)).fetchone()
+    user = current_user()
+
+    # استخدم نفس قالب HTML للفاتورة الذي أنشأناه سابقًا
+    html = render_template("invoice_pdf.html", invoice=inv, org=org, user=user)
+    pdf_bytes = render_pdf_from_html(html)
+
+    resp = make_response(pdf_bytes)
+    resp.headers["Content-Type"] = "application/pdf"
+    resp.headers["Content-Disposition"] = f'inline; filename="invoice_{invoice_id}.pdf"'
     return resp
+
 
 # Finance reports
 @app.get("/admin/finance")
