@@ -111,7 +111,16 @@ def security_headers(resp):
 @app.get("/")
 def index():
     return render_template("index.html")
-
+#__________legal--------
+# --- Legal pages list ---
+@app.route("/admin/legal", methods=["GET"], endpoint="admin_legal_list")
+def legal_list_get():
+    pages = [
+        {"title": "Privacy Policy", "url": url_for('privacy') if 'privacy' in [r.endpoint for r in app.url_map.iter_rules()] else "/privacy"},
+        {"title": "Terms & Conditions", "url": url_for('terms') if 'terms' in [r.endpoint for r in app.url_map.iter_rules()] else "/terms"},
+        {"title": "GDPR Compliance", "url": "/gdpr"}
+    ]
+    return render_template("legal_list.html", pages=pages)
 # ---------- Auth ----------
 @app.get("/login")
 def login_get():
