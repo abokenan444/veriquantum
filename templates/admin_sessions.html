@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Admin • Biometric Sessions{% endblock %}
+{% block content %}
+<h2>Biometric Sessions</h2>
+<table style="width:100%;border-collapse:collapse">
+  <tr><th>ID</th><th>Org</th><th>User</th><th>External Ref</th><th>Status</th><th>Expires</th><th>Actions</th></tr>
+  {% for s in sessions %}
+  <tr>
+    <td>{{ s.id }}</td>
+    <td>{{ s.org_id or '-' }}</td>
+    <td>{{ s.user_id or '-' }}</td>
+    <td>{{ s.external_ref or '-' }}</td>
+    <td>{{ s.status }}</td>
+    <td>{{ s.expires_at }}</td>
+    <td>
+      {% if s.status == 'pending' %}
+      <form method="post" action="{{ url_for('admin_sessions_force') }}" style="display:inline">
+        <input type="hidden" name="id" value="{{ s.id }}">
+        <input type="hidden" name="result" value="verified">
+        <button class="btn">Mark Verified</button>
+      </form>
+      <form method="post" action="{{ url_for('admin_sessions_force') }}" style="display:inline">
+        <input type="hidden" name="id" value="{{ s.id }}">
+        <input type="hidden" name="result" value="failed">
+        <button class="btn btn-ghost">Mark Failed</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Theme - Admin{% endblock %}
+{% block content %}
+<h2>Theme Settings</h2>
+<p class="form-help">Change brand name, primary color and logo URL.</p>
+
+<div class="panel" style="max-width:720px;margin:auto">
+  <form method="post" class="grid-2">
+    <div><label>Brand Name</label><input name="brand_name" value="{{ t.brand_name or 'VeriQuantum' }}"></div>
+    <div><label>Primary Color</label><input name="primary_color" value="{{ t.primary_color or '#0b5ed7' }}" placeholder="#0b5ed7"></div>
+    <div style="grid-column:1/-1"><label>Logo URL</label><input name="logo_url" value="{{ t.logo_url or '' }}" placeholder="https://.../logo.png"></div>
+    <div style="grid-column:1/-1" class="mt-2"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+
+<div class="panel mt-2" style="max-width:720px;margin:auto">
+  <p>Preview:</p>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="width:36px;height:36px;border-radius:50%;background:{{ t.primary_color or '#0b5ed7' }}"></div>
+    <strong>{{ t.brand_name or 'VeriQuantum' }}</strong>
+    {% if t.logo_url %}<img src="{{ t.logo_url }}" style="height:36px">{% endif %}
+  </div>
+</div>
+{% endblock %}

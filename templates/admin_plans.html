@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Plans - Admin{% endblock %}
+{% block content %}
+<h2>Subscription Plans</h2>
+<p class="form-help">Create or edit pricing plans. Codes: <code>free</code>, <code>pro</code>, <code>enterprise</code>.</p>
+
+<div class="panel">
+  <table style="width:100%;border-collapse:collapse">
+    <tr style="border-bottom:1px solid #e5e7eb">
+      <th>Code</th><th>Name</th><th>Price / mo</th><th>Currency</th><th>Active</th><th>Features (JSON)</th><th>Save</th>
+    </tr>
+    {% for p in plans %}
+    <tr style="border-bottom:1px solid #f0f0f0">
+      <form method="post" action="{{ url_for('admin_plans_save') }}">
+        <input type="hidden" name="id" value="{{ p.id }}">
+        <td><input name="code" value="{{ p.code }}" required></td>
+        <td><input name="name" value="{{ p.name }}" required></td>
+        <td><input name="price" value="{{ '%.2f'|format(p.price_month) }}" required></td>
+        <td><input name="currency" value="{{ p.currency or 'EUR' }}"></td>
+        <td>
+          <select name="active"><option value="1" {% if p.active %}selected{% endif %}>Yes</option>
+            <option value="0" {% if not p.active %}selected{% endif %}>No</option></select>
+        </td>
+        <td><textarea name="features_json" rows="2" style="min-width:220px">{{ p.features_json or '{}' }}</textarea></td>
+        <td><button class="btn" type="submit">Save</button></td>
+      </form>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h3 class="mt-2">New Plan</h3>
+<div class="panel">
+  <form method="post" action="{{ url_for('admin_plans_save') }}" class="grid-2">
+    <input type="hidden" name="id" value="">
+    <div><label>Code</label><input name="code" placeholder="basic" required></div>
+    <div><label>Name</label><input name="name" placeholder="Basic Plan" required></div>
+    <div><label>Price / mo</label><input name="price" value="0" required></div>
+    <div><label>Currency</label><input name="currency" value="EUR"></div>
+    <div><label>Active</label><select name="active"><option value="1">Yes</option><option value="0">No</option></select></div>
+    <div style="grid-column:1/-1"><label>Features (JSON)</label>
+      <textarea name="features_json" rows="3" placeholder='{"seats":5,"biometric":"advanced"}'></textarea></div>
+    <div style="grid-column:1/-1"><button class="btn" type="submit">Create</button></div>
+  </form>
+</div>
+{% endblock %}

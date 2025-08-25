@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Company Profile{% endblock %}
+{% block content %}
+<h2>{{ company.name }}</h2>
+<p>Sector: {{ company.sector }}</p>
+<p>Country: {{ company.country }}</p>
+
+<h3>Linked Users</h3>
+<ul>
+  {% for user in linked_users %}
+    <li>{{ user.name }} - {{ user.role }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

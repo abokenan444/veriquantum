@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}My Organizations{% endblock %}
+{% block content %}
+<h2>My Organizations</h2>
+<p class="form-help">Organizations where you are a member.</p>
+
+<div class="panel">
+  <table style="width:100%;border-collapse:collapse">
+    <tr style="border-bottom:1px solid #e5e7eb">
+      <th>Name</th><th>Country</th><th>Your Role</th><th>Open</th>
+    </tr>
+    {% for org, mem in rows %}
+    <tr style="border-bottom:1px solid #f0f0f0">
+      <td>{{ org.name }}</td>
+      <td>{{ org.country or '-' }}</td>
+      <td>{{ mem.role }}</td>
+      <td><a class="btn" href="{{ url_for('org_members', org_id=org.id) }}">Manage</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<a class="btn mt-2" href="{{ url_for('org_create_get') }}">Create Organization</a>
+{% endblock %}

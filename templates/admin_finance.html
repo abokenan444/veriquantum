@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Finance Reports{% endblock %}
+{% block content %}
+<h2>Finance Reports</h2>
+
+<!-- KPIs -->
+<div class="grid-3">
+  <div class="panel">
+    <div class="muted">MRR</div>
+    <div style="font-size:24px;font-weight:700">€ {{ '%.2f'|format(kpis.MRR) }}</div>
+  </div>
+  <div class="panel">
+    <div class="muted">ARR</div>
+    <div style="font-size:24px;font-weight:700">€ {{ '%.2f'|format(kpis.ARR) }}</div>
+  </div>
+  <div class="panel">
+    <div class="muted">ARPU</div>
+    <div style="font-size:24px;font-weight:700">€ {{ '%.2f'|format(kpis.ARPU) }}</div>
+  </div>
+</div>
+
+<div class="grid-3 mt-1">
+  <div class="panel">
+    <div class="muted">Active Subscriptions</div>
+    <div style="font-size:24px;font-weight:700">{{ kpis.ActiveSubs }}</div>
+  </div>
+  <div class="panel">
+    <div class="muted">12-Month Revenue</div>
+    <div style="font-size:24px;font-weight:700">€ {{ '%.2f'|format(kpis.Revenue12m) }}</div>
+  </div>
+  <div class="panel">
+    <div class="muted">Churn (30d approx.)</div>
+    <div style="font-size:24px;font-weight:700">{{ '%.2f'|format(kpis.ChurnRate) }}%</div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="panel mt-2">
+  <h3>Revenue (Last 12 Months)</h3>
+  <canvas id="revLine"></canvas>
+</div>
+
+<div class="grid-2 mt-2">
+  <div class="panel">
+    <h3>By Plan</h3>
+    <canvas id="byPlan"></canvas>
+  </div>
+  <div class="panel">
+    <h3>By Method</h3>
+    <canvas id="byMethod"></canvas>
+  </div>
+</div>
+
+<div class="panel mt-2">
+  <h3>By Country</h3>
+  <canvas id="byCountry"></canvas>
+</div>
+
+<p class="mt-2">
+  <a class="btn" href="{{ url_for('finance_export_csv') }}">Export CSV</a>
+  <a class="btn btn-secondary" href="{{ url_for('finance_export_xlsx') }}">Export Excel</a>
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<script>
+const months = {{ months|tojson }};
+const revenue = {{ revenue|tojson }};
+
+const planLabels = {{ by_plan_labels|tojson }};
+const planData = {{ by_plan_data|tojson }};
+
+const methodLabels = {{ by_method_labels|tojson }};
+const methodData = {{ by_method_data|tojson }};
+
+const countryLabels = {{ by_country_labels|tojson }};
+const countryData = {{ by_country_data|tojson }};
+
+const ctx1 = document.getElementById('revLine').getContext('2d');
+new Chart(ctx1, {
+  type: 'line',
+  data: { labels: months, datasets: [{ label: 'Revenue €', data: revenue }] },
+  options: { responsive: true, plugins: { legend: { display: true } } }
+});
+
+const ctx2 = document.getElementById('byPlan').getContext('2d');
+new Chart(ctx2, {
+  type: 'bar',
+  data: { labels: planLabels, datasets: [{ label: 'Revenue €', data: planData }] },
+  options: { responsive: true }
+});
+
+const ctx3 = document.getElementById('byMethod').getContext('2d');
+new Chart(ctx3, {
+  type: 'pie',
+  data: { labels: methodLabels, datasets: [{ data: methodData }] },
+  options: { responsive: true }
+});
+
+const ctx4 = document.getElementById('byCountry').getContext('2d');
+new Chart(ctx4, {
+  type: 'bar',
+  data: { labels: countryLabels, datasets: [{ label: 'Revenue €', data: countryData }] },
+  options: { responsive: true }
+});
+</script>
+{% endblock %}

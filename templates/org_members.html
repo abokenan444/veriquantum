@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ org.name }} - Members{% endblock %}
+{% block content %}
+<h2>{{ org.name }} — Members</h2>
+<p class="form-help">Invite existing platform users by email and set roles.</p>
+
+{% if me.role != "admin" %}
+  <div class="alert alert-danger">You have read-only access (role: {{ me.role }}).</div>
+{% endif %}
+
+<div class="panel">
+  <table style="width:100%;border-collapse:collapse">
+    <tr style="border-bottom:1px solid #e5e7eb">
+      <th>User</th><th>Email</th><th>Role</th><th>Actions</th>
+    </tr>
+    {% for m in members %}
+    <tr style="border-bottom:1px solid #f0f0f0">
+      <td>{{ m.user.username }}</td>
+      <td>{{ m.user.email }}</td>
+      <td>{{ m.role }}</td>
+      <td>
+        {% if me.role == "admin" and m.user_id != me.user_id %}
+          <form method="post" action="{{ url_for('org_members_remove', org_id=org.id) }}" style="display:inline">
+            <input type="hidden" name="uid" value="{{ m.user_id }}">
+            <button class="btn btn-secondary" type="submit">Remove</button>
+          </form>
+        {% else %}-{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% if me.role == "admin" %}
+<div class="panel mt-2" style="max-width:640px;margin:auto">
+  <h3>Add / Update Member</h3>
+  <form method="post" action="{{ url_for('org_members_save', org_id=org.id) }}" class="grid-3">
+    <div><label>Email</label><input name="email" placeholder="user@example.com" required></div>
+    <div>
+      <label>Role</label>
+      <select name="role">
+        <option value="member">Member</option>
+        <option value="admin">Admin</option>
+        <option value="auditor">Auditor</option>
+      </select>
+    </div>
+    <div style="align-self:end"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+{% endif %}
+
+<a class="btn mt-2" href="{{ url_for('orgs_list') }}">⬅ Back to Organizations</a>
+{% endblock %}

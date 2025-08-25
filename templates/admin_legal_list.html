@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Legal Pages{% endblock %}
+{% block content %}
+<h2>Legal Pages</h2>
+<div class="panel">
+  <table style="width:100%">
+    <tr><th>Slug</th><th>Title</th><th>Updated</th><th>Edit</th></tr>
+    {% for p in pages %}
+    <tr>
+      <td>{{ p.slug }}</td><td>{{ p.title }}</td><td>{{ p.updated_at }}</td>
+      <td><a class="btn" href="{{ url_for('admin_legal_edit', slug=p.slug) }}">Edit</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h3 class="mt-2">New Page</h3>
+<div class="panel">
+  <form method="get" action="{{ url_for('admin_legal_edit', slug='') }}" onsubmit="this.action=this.action+document.getElementById('slug').value;">
+    <input id="slug" name="slug" placeholder="privacy" required>
+    <button class="btn" type="submit">Create/Edit</button>
+  </form>
+</div>
+{% endblock %}

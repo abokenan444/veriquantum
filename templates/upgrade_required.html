@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Upgrade Required{% endblock %}
+{% block content %}
+<h2>Upgrade Required</h2>
+<p class="alert alert-danger">This feature ({{ feature }}) is available on higher plans.</p>
+<a class="btn" href="{{ url_for('subscribe') }}">View Plans</a>
+{% endblock %}

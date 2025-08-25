@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Login - VeriQuantum{% endblock %}
+
+{% block content %}
+<h2>Login</h2>
+
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+<div class="panel" style="max-width:460px;margin:auto">
+  <form method="post" data-validate>
+    <label>Username or Email</label>
+    <input name="username" placeholder="Enter your username or email" required>
+
+    <label class="mt-1">Password</label>
+    <input name="password" type="password" placeholder="Enter your password" required>
+
+    <p class="form-help"><a href="{{ url_for('forgot_get') }}">Forgot your password?</a></p>
+
+    <button class="btn block" type="submit">Login</button>
+  </form>
+</div>
+
+<p class="center mt-2">Don't have an account? <a href="{{ url_for('register_get') }}">Sign up</a></p>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Verify 2FA - VeriQuantum{% endblock %}
+{% block content %}
+<h2>Verify Two-Factor Code</h2>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<div class="panel" style="max-width:420px;margin:auto">
+  <form method="post" data-validate>
+    <input name="code" placeholder="6-digit code" required>
+    <button class="btn block" type="submit">Verify</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Admin Settings - VeriQuantum{% endblock %}
+
+{% block content %}
+<h2>Admin Settings</h2>
+<p class="form-help">
+  Configure SMTP (email), App Base URL (used in password reset links), and alert channels (Slack & Telegram).
+</p>
+
+<div class="panel" style="max-width:780px;margin:auto">
+  <form method="post" class="grid-2" data-validate>
+    <!-- SMTP -->
+    <div>
+      <label>SMTP Host</label>
+      <input name="smtp_host" value="{{ s.smtp_host or '' }}" placeholder="smtp.gmail.com">
+    </div>
+    <div>
+      <label>SMTP Port</label>
+      <input name="smtp_port" value="{{ s.smtp_port or '587' }}" placeholder="587">
+    </div>
+    <div>
+      <label>SMTP User</label>
+      <input name="smtp_user" value="{{ s.smtp_user or '' }}" placeholder="no-reply@example.com">
+    </div>
+    <div>
+      <label>SMTP Pass</label>
+      <input name="smtp_pass" type="password" value="{{ s.smtp_pass or '' }}" placeholder="App password">
+    </div>
+    <div>
+      <label>SMTP From</label>
+      <input name="smtp_from" value="{{ s.smtp_from or '' }}" placeholder="no-reply@example.com">
+    </div>
+
+    <!-- App URL -->
+    <div>
+      <label>APP Base URL</label>
+      <input name="app_base_url" value="{{ s.app_base_url or '' }}" placeholder="https://your-app.onrender.com">
+    </div>
+
+    <!-- Slack -->
+    <div style="grid-column:1/-1;margin-top:12px"><hr style="border:none;border-top:1px solid #e5e7eb"></div>
+    <div>
+      <label>Slack Webhook URL</label>
+      <input name="slack_webhook_url" value="{{ s.slack_webhook_url or '' }}" placeholder="https://hooks.slack.com/services/...">
+    </div>
+
+    <!-- Telegram -->
+    <div>
+      <label>Telegram Bot Token</label>
+      <input name="telegram_bot_token" value="{{ s.telegram_bot_token or '' }}" placeholder="123456789:ABCDEF...">
+    </div>
+    <div>
+      <label>Telegram Chat ID</label>
+      <input name="telegram_chat_id" value="{{ s.telegram_chat_id or '' }}" placeholder="123456789">
+    </div>
+
+    <!-- Actions -->
+    <div style="grid-column:1/-1" class="mt-2">
+      <button class="btn" type="submit">Save</button>
+      <a class="btn secondary" href="{{ url_for('admin_alerts_get') }}">Test Alerts</a>
+    </div>
+  </form>
+</div>
+
+<p class="form-help mt-2 center">
+  Tip: If SMTP is not configured, password reset emails will be skipped.
+</p>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Biometric Verification{% endblock %}
+{% block content %}
+<h2>Biometric Verification</h2>
+<p>To continue, verify with a platform passkey (Face ID / Touch ID / Windows Hello).</p>
+<button class="btn" onclick="vqAuthenticatePasskey({{ session_id }})">Verify with Passkey</button>
+<script src="{{ url_for('static', filename='js/webauthn.js') }}"></script>
+{% endblock %}

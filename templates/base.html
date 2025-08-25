@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}VeriQuantum{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<script>
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}'));
+}
+</script>
+
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container header-inner">
+      <div class="brand">
+        <a href="{{ url_for('index') }}" style="color:#fff;text-decoration:none;font-weight:700">VeriQuantum</a>
+      </div>
+      <nav class="nav-actions">
+        {% if session.get('user') %}
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('admin_settings_get') }}">Admin</a>
+          <a href="{{ url_for('admin_users_get') }}">Users</a>
+          <a href="{{ url_for('admin_policies_get') }}">Policies</a>
+          <a href="{{ url_for('admin_alerts_get') }}">Alerts</a>
+          <a href="{{ url_for('logout') }}">Logout</a>
+        <a href="{{ url_for('twofa_setup_get') }}">2FA</a>
+        <a href="{{ url_for('orgs_list') }}">Organizations</a>
+<a href="{{ url_for('admin_plans_get') }}">Plans</a>
+<a href="{{ url_for('admin_subs_get') }}">Subscriptions</a>
+<a href="{{ url_for('admin_countries_get') }}">Countries</a>
+<a href="{{ url_for('admin_theme_get') }}">Theme</a>
+<a href="{{ url_for('admin_sectors_get') }}">Sectors</a>
+#<a href="{{ url_for('admin_legal_list') }}">Legal Pages</a>
+        <a href="{{ url_for('legal_list_get') }}">Legal Pages</a>
+<a href="{{ url_for('admin_finance') }}">Finance</a>
+
+
+        {% else %}
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('login_get') }}">Login</a>
+          <a href="{{ url_for('register_get') }}">Register</a>
+        {% endif %}
+        <button id="darkModeToggle" class="btn ghost" type="button">Dark</button>
+        <a href="{{ url_for('account_security_keys') }}">Passkeys</a>
+  {% if session.get("is_admin") %}<a href="{{ url_for('admin_sessions_get') }}">Sessions</a>{% endif %}
+</nav>
+    </div>
+  </header>
+
+  <!-- Page content -->
+  <div class="wrap container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer>
+    <div class="container" style="color:#6b7280;font-size:.9rem;margin:28px 0">© VeriQuantum</div>
+  </footer>
+
+  <!-- JS -->
+  <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
+

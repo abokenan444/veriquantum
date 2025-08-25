@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Org Permissions{% endblock %}
+{% block content %}
+<h2>Organization Permissions</h2>
+<div class="panel">
+  <form method="post" action="{{ url_for('org_permissions_save', org_id=org_id) }}" class="grid-3">
+    <div>
+      <label>User</label>
+      <select name="user_id">
+        {% for m in members %}
+          <option value="{{ m.user_id }}">{{ users[m.user_id].username }} ({{ m.role }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Scope</label>
+      <select name="scope">
+        <option value="manage_users">manage_users</option>
+        <option value="view_audit">view_audit</option>
+        <option value="manage_policies">manage_policies</option>
+        <option value="billing">billing</option>
+      </select>
+    </div>
+    <div>
+      <label>Granted</label>
+      <select name="granted"><option value="1">Yes</option><option value="0">No</option></select>
+    </div>
+    <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+
+<h3 class="mt-2">Existing Permissions</h3>
+<div class="panel">
+  <table style="width:100%">
+    <tr><th>User</th><th>Scope</th><th>Granted</th></tr>
+    {% for p in perms %}
+      <tr><td>{{ users[p.user_id].username }}</td><td>{{ p.scope }}</td><td>{{ "Yes" if p.granted else "No" }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ slug }}{% endblock %}
+{% block content %}
+<h2>Edit: {{ slug }}</h2>
+<div class="panel">
+  <form method="post">
+    <label>Title</label>
+    <input name="title" value="{{ p.title if p else slug|capitalize }}">
+    <label class="mt-1">Content (Markdown)</label>
+    <textarea name="content_md" rows="16" style="width:100%">{{ p.content_md if p else '' }}</textarea>
+    <button class="btn mt-2" type="submit">Save</button>
+  </form>
+</div>
+{% endblock %}

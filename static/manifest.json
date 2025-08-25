@@ -1,0 +1,9 @@
+{
+  "name": "VeriQuantum",
+  "short_name": "VQ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1c",
+  "theme_color": "#0b5ed7",
+  "icons": []
+}

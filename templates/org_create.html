@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Create Organization{% endblock %}
+{% block content %}
+<h2>Create Organization</h2>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<div class="panel" style="max-width:520px;margin:auto">
+  <form method="post">
+    <label>Name</label>
+    <input name="name" placeholder="Org / Company / Agency" required>
+    <label class="mt-1">Country (ISO-2)</label>
+    <input name="country" placeholder="NL" maxlength="2">
+    <button class="btn mt-2" type="submit">Create</button>
+  </form>
+</div>
+{% endblock %}

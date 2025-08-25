@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Countries - Admin{% endblock %}
+{% block content %}
+<h2>Countries</h2>
+<p class="form-help">Enable/Disable countries (ISO-2 codes) for platform & policy targeting.</p>
+
+<div class="panel">
+  <table style="width:100%;border-collapse:collapse">
+    <tr style="border-bottom:1px solid #e5e7eb"><th>Code</th><th>Name</th><th>Enabled</th><th>Save</th></tr>
+    {% for c in countries %}
+    <tr style="border-bottom:1px solid #f0f0f0">
+      <form method="post" action="{{ url_for('admin_countries_save') }}">
+        <td><input name="code" value="{{ c.code }}" maxlength="2" style="width:70px"></td>
+        <td><input name="name" value="{{ c.name }}"></td>
+        <td>
+          <select name="enabled">
+            <option value="1" {% if c.enabled %}selected{% endif %}>Yes</option>
+            <option value="0" {% if not c.enabled %}selected{% endif %}>No</option>
+          </select>
+        </td>
+        <td><button class="btn" type="submit">Save</button></td>
+      </form>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<h3 class="mt-2">Add/Update Country</h3>
+<div class="panel">
+  <form method="post" action="{{ url_for('admin_countries_save') }}" class="grid-3">
+    <div><label>Code</label><input name="code" placeholder="NL" maxlength="2" required></div>
+    <div><label>Name</label><input name="name" placeholder="Netherlands" required></div>
+    <div><label>Enabled</label><select name="enabled"><option value="1">Yes</option><option value="0">No</option></select></div>
+    <div style="grid-column:1/-1"><button class="btn" type="submit">Save</button></div>
+  </form>
+</div>
+{% endblock %}

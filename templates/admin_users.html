@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Admin Users - VeriQuantum{% endblock %}
+
+{% block content %}
+<h2>Users</h2>
+<p class="form-help">Promote or demote users to Admin.</p>
+
+<div class="panel">
+  <table style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr style="text-align:left;border-bottom:1px solid #e5e7eb">
+        <th style="padding:10px">Username</th>
+        <th style="padding:10px">Email</th>
+        <th style="padding:10px">Admin</th>
+        <th style="padding:10px">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr style="border-bottom:1px solid #f0f0f0">
+        <td style="padding:10px">{{ u.username }}</td>
+        <td style="padding:10px">{{ u.email }}</td>
+        <td style="padding:10px">{{ "Yes" if u.is_admin else "No" }}</td>
+        <td style="padding:10px">
+          <form method="post" action="{{ url_for('admin_users_promote') }}" style="display:inline-flex;gap:8px;align-items:center">
+            <input type="hidden" name="uid" value="{{ u.id }}">
+            <select name="is_admin">
+              <option value="0" {% if not u.is_admin %}selected{% endif %}>User</option>
+              <option value="1" {% if u.is_admin %}selected{% endif %}>Admin</option>
+            </select>
+            <button class="btn" type="submit">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
