@@ -154,7 +154,23 @@ def legal_page(slug):
     if not p:
         abort(404)
     return render_template("legal_dynamic.html", p=p)
+@app.get("/privacy")
+def privacy():
+    with SessionLocal() as db:
+        p = db.query(LegalPage).filter(LegalPage.slug=="privacy").first()
+    return render_template("legal_dynamic.html", p=p) if p else render_template("privacy.html")
 
+@app.get("/terms")
+def terms():
+    with SessionLocal() as db:
+        p = db.query(LegalPage).filter(LegalPage.slug=="terms").first()
+    return render_template("legal_dynamic.html", p=p) if p else render_template("terms.html")
+
+@app.get("/gdpr")
+def gdpr():
+    with SessionLocal() as db:
+        p = db.query(LegalPage).filter(LegalPage.slug=="gdpr").first()
+    return render_template("legal_dynamic.html", p=p) if p else render_template("gdpr.html")
 # -----------------------------------------------------------------------------
 # Auth
 # -----------------------------------------------------------------------------
