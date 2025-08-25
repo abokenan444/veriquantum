@@ -992,4 +992,11 @@ def admin_sessions_force():
     result = request.form.get("result","failed")
     ok = finalize_biometric_session(sid, result, session.get("uid"), {"forced": True})
     return redirect(url_for("admin_sessions_get"))
-
+@app.context_processor
+def _util_ctx():
+    def safe_url(endpoint, **values):
+        try:
+            return url_for(endpoint, **values)
+        except Exception:
+            return "#"
+    return dict(safe_url=safe_url)
