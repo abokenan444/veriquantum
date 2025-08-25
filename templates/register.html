@@ -1,16 +1,33 @@
 {% extends "base.html" %}
-
-{% block title %}Register - VeriQuantum{% endblock %}
-
+{% block title %}Create an Account · VeriQuantum{% endblock %}
 {% block content %}
-  <h2>Create an Account</h2>
-  {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-  {% endif %}
-  <form method="post" style="display:flex;flex-direction:column;gap:12px;max-width:400px;">
-    <input name="username" placeholder="Username" required>
-    <input name="email" type="email" placeholder="Email" required>
-    <input name="password" type="password" placeholder="Password" required>
-    <button class="btn" type="submit">Register</button>
+<div class="card">
+  <h2 style="margin:0 0 14px">Create an Account</h2>
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+  <form method="post" action="{{ url_for('register_post') }}" autocomplete="off">
+    <div style="margin-bottom:10px">
+      <label>Username</label>
+      <input name="username" class="input" placeholder="Your username" required style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px">
+    </div>
+    <div style="margin-bottom:10px">
+      <label>Email</label>
+      <input type="email" name="email" class="input" placeholder="you@example.com" required style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px">
+    </div>
+    <div style="margin-bottom:16px">
+      <label>Password</label>
+      <input type="password" name="password" class="input" placeholder="Create a strong password" required style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px">
+    </div>
+
+    <button class="btn" type="submit" style="width:100%">Register</button>
   </form>
+
+  <div style="margin-top:14px;font-size:.95rem;color:#475569">
+    Prefer **passkeys**? <a href="{{ url_for('webauthn_about') }}">Learn how to use Security Keys / Passkeys</a>
+  </div>
+
+  <div style="margin-top:14px">
+    Already have an account? <a href="{{ url_for('login_get') }}">Login</a>
+  </div>
+</div>
 {% endblock %}
