@@ -165,6 +165,10 @@ def index():
 # -----------------------------------------------------------------------------
 # Legal (list + dynamic)
 # -----------------------------------------------------------------------------
+# alias public path /legal -> same view, endpoint name: legal_list_get
+@app.get("/legal", endpoint="legal_list_get")
+def legal_list_public():
+    return legal_list_get()
 @app.route("/admin/legal", methods=["GET"], endpoint="admin_legal_list")
 def legal_list_get():
     """قائمة الصفحات القانونية في لوحة الإدارة."""
