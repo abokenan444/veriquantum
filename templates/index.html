@@ -1,18 +1,267 @@
 {% extends "base.html" %}
-
-{% block title %}Home - VeriQuantum{% endblock %}
+{% block title %}VeriQuantum — Unified Biometric & Identity Platform{% endblock %}
 
 {% block content %}
-  <h1>Welcome to VeriQuantum</h1>
-  <p>Your AI-powered platform for secure biometric verification and quantum encryption.</p>
+<style>
+  /* ======= Palette & tokens ======= */
+  :root{
+    --bg: #0a0f1c;
+    --bg-soft:#0f1629;
+    --card:#0b1328;
+    --primary:#0b5ed7;          /* الأزرق الأساسي */
+    --accent:#22c55e;           /* أخضر الثقة */
+    --ink:#e6eefc;              /* نص فاتح */
+    --muted:#a6b3cf;
+    --ring: rgba(34,197,94,.45);
+    --shadow: 0 12px 40px rgba(11,94,215,.15);
+    --radius: 14px;
+  }
+  .home{color:var(--ink)}
+  .home .container{max-width:1180px;margin:auto;padding:0 20px}
 
-  {% if session.get('user') %}
-    <div class="alert alert-success">
-      Logged in as <strong>{{ session.get('user') }}</strong>.
-    </div>
-    <a href="{{ url_for('dashboard') }}" class="btn">Go to Dashboard</a>
-  {% else %}
-    <a href="{{ url_for('login_get') }}" class="btn">Login</a>
-    <a href="{{ url_for('register_get') }}" class="btn btn-secondary">Register</a>
-  {% endif %}
+  /* ======= Hero ======= */
+  .hero{
+    position:relative;overflow:hidden;
+    background: radial-gradient(1200px 500px at 70% -10%, rgba(11,94,215,.35), transparent 60%),
+                radial-gradient(800px 400px at -10% 20%, rgba(34,197,94,.18), transparent 60%),
+                linear-gradient(180deg, var(--bg), var(--bg-soft));
+    border-radius: calc(var(--radius) + 6px);
+    box-shadow: var(--shadow);
+    padding: 64px 0 46px;
+  }
+  .hero h1{font-size:40px; line-height:1.15; margin:0 0 14px}
+  .hero p.lead{color:var(--muted); font-size:18px; max-width:760px}
+  .hero .cta{margin-top:26px; display:flex; gap:12px; flex-wrap:wrap}
+  .btn{
+    appearance:none; border:0; cursor:pointer;
+    padding:12px 18px; border-radius:10px; font-weight:700; letter-spacing:.2px;
+    transition:.2s transform ease, .2s box-shadow ease, .2s background;
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--primary); color:white; box-shadow:0 6px 22px rgba(11,94,215,.28)}
+  .btn-ghost{background:transparent; color:var(--ink); border:1px solid rgba(230,238,252,.18)}
+  .hero-metrics{margin-top:28px; display:flex; gap:18px; flex-wrap:wrap}
+  .metric{background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+          padding:12px 14px; border-radius:10px; min-width:160px}
+  .metric b{font-size:18px}
+
+  /* ======= Quick Nav (pills) ======= */
+  .pills{display:flex; gap:10px; margin:18px 0 0; flex-wrap:wrap}
+  .pill{background:rgba(11,94,215,.12); color:#cfe3ff; padding:8px 12px; border-radius:999px;
+        border:1px solid rgba(11,94,215,.25); font-size:12px; letter-spacing:.25px}
+
+  /* ======= Sections ======= */
+  section.block{margin-top:38px}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+  .grid-4{display:grid; grid-template-columns:repeat(4,1fr); gap:18px}
+  .card{
+    background:var(--card); border:1px solid rgba(255,255,255,.06);
+    border-radius:var(--radius); padding:18px; box-shadow: var(--shadow);
+  }
+  .card h3{margin:0 0 8px; font-size:18px}
+  .muted{color:var(--muted)}
+  .badge{
+    display:inline-block; font-size:12px; padding:6px 10px; border-radius:8px;
+    border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.03); color:#cfd7ef
+  }
+
+  /* ======= How it works ======= */
+  .step{position:relative; padding-top:8px}
+  .step .num{
+    width:34px;height:34px;border-radius:10px;background:rgba(11,94,215,.14);
+    border:1px solid rgba(11,94,215,.35); display:flex;align-items:center;justify-content:center;
+    font-weight:800; color:#cfe0ff; margin-bottom:10px
+  }
+  .step p{margin:8px 0 0}
+
+  /* ======= Sectors ======= */
+  .sector{display:flex; gap:12px; align-items:flex-start}
+  .sector .ico{width:42px;height:42px;border-radius:10px;background:rgba(34,197,94,.14);
+               border:1px solid var(--ring); display:flex;align-items:center;justify-content:center}
+  .sector a{color:#a7ffd3; text-decoration:none}
+  .sector a:hover{text-decoration:underline}
+
+  /* ======= Features ======= */
+  .feature li{margin:6px 0}
+  .tick{color:var(--accent); margin-right:8px}
+
+  /* ======= CTA ======= */
+  .cta-band{
+    margin-top:26px; padding:16px; border-radius:var(--radius);
+    border:1px dashed rgba(255,255,255,.15); background:linear-gradient(180deg, rgba(11,94,215,.10), rgba(255,255,255,0));
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap
+  }
+
+  /* ======= Responsive ======= */
+  @media (max-width: 980px){
+    .grid-4{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width: 720px){
+    .grid-3{grid-template-columns:1fr}
+    .grid-4{grid-template-columns:1fr}
+    .hero h1{font-size:32px}
+  }
+</style>
+
+<div class="home">
+  <div class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <span class="badge">Quantum-grade Identity • Multi-modal Biometrics • Zero-trust ready</span>
+        <h1>One Platform to Verify Everyone.<br>Secure, Fast, and Ready for Scale.</h1>
+        <p class="lead">
+          VeriQuantum يجمع بين التحقق البيومتري متعدد الوسائط (وجه، صوت، قزحية) وتوثيق متعدد العوامل، مع تشفير ما بعد الكم
+          وسياسات دقيقة لكل قطاع. من الحكومات إلى البنوك والمستشفيات والشركات—بوحدة تحكّم واحدة.
+        </p>
+
+        <div class="cta">
+          <a class="btn btn-primary" href="{{ url_for('register_get') }}">Create Account</a>
+          {% if session.get('user') %}
+            <a class="btn btn-ghost" href="{{ url_for('dashboard') }}">Open Dashboard</a>
+          {% else %}
+            <a class="btn btn-ghost" href="{{ url_for('login_get') }}">Sign in</a>
+          {% endif %}
+          <a class="btn btn-ghost" href="#how">How it Works</a>
+        </div>
+
+        <div class="hero-metrics">
+          <div class="metric"><b>~0.35s</b><br><span class="muted">Avg. decision time</span></div>
+          <div class="metric"><b>99.9%</b><br><span class="muted">Uptime target</span></div>
+          <div class="metric"><b>GDPR / ISO 27001</b><br><span class="muted">Compliance</span></div>
+        </div>
+
+        <div class="pills">
+          <span class="pill">Post-Quantum Crypto</span>
+          <span class="pill">Liveness & Anti-spoof</span>
+          <span class="pill">SCIM / SSO / OIDC</span>
+          <span class="pill">Audit & Alerts</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how" class="block">
+      <h2>How VeriQuantum Works</h2>
+      <div class="grid-4">
+        <div class="card step">
+          <div class="num">1</div>
+          <h3>Enroll</h3>
+          <p class="muted">يسجّل المستخدم البيانات الحيوية بأمان (وجه/صوت/قزحية) ويُفعل 2FA. تُخزن التضمينات مُشفّرة.</p>
+        </div>
+        <div class="card step">
+          <div class="num">2</div>
+          <h3>Verify</h3>
+          <p class="muted">تتم مطابقة متعددة الوسائط مع كشف حيوية لحظي، ثم دمج النتائج بنموذج اندماجي مرجّح.</p>
+        </div>
+        <div class="card step">
+          <div class="num">3</div>
+          <h3>Risk & Policies</h3>
+          <p class="muted">تطبق سياسات القطاع (نطاق جغرافي/نافذة زمنية/مستوى الحيوية) مع سجل تدقيق وتنبيهات.</p>
+        </div>
+        <div class="card step">
+          <div class="num">4</div>
+          <h3>Decision</h3>
+          <p class="muted">قرار فوري + JWT/Session. تُحدَّث المقاييس والتقارير المالية تلقائياً.</p>
+        </div>
+      </div>
+      <div class="cta-band">
+        <div>
+          <b>Start in minutes.</b>
+          <div class="muted">إنشاء منظمتك، دعوة الفريق، تفعيل السياسات، واختيار خطة الدفع (iDEAL/بطاقة/حوالة).</div>
+        </div>
+        <div>
+          <a class="btn btn-primary" href="{{ url_for('org_create_get') }}">Create Organization</a>
+          <a class="btn btn-ghost" href="{{ url_for('admin_policies_get') }}">Configure Policies</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHO WE SERVE -->
+    <section class="block">
+      <h2>Who We Serve</h2>
+      <div class="grid-4">
+        <div class="card sector">
+          <div class="ico">🏛️</div>
+          <div>
+            <h3>Government</h3>
+            <p class="muted">بوابات موحّدة، تصويت إلكتروني، هويات رقمية آمنة.</p>
+            <a href="{{ url_for('sector', name='government') }}">Explore &rsaquo;</a>
+          </div>
+        </div>
+        <div class="card sector">
+          <div class="ico">🏦</div>
+          <div>
+            <h3>Banks & Fintech</h3>
+            <p class="muted">KYC، توقيع المعاملات، حماية الاحتيال وSCA.</p>
+            <a href="{{ url_for('sector', name='banks') }}">Explore &rsaquo;</a>
+          </div>
+        </div>
+        <div class="card sector">
+          <div class="ico">🏥</div>
+          <div>
+            <h3>Healthcare</h3>
+            <p class="muted">وصول آمن للسجلات الطبية وتفويض الوصفات.</p>
+            <a href="{{ url_for('sector', name='hospitals') }}">Explore &rsaquo;</a>
+          </div>
+        </div>
+        <div class="card sector">
+          <div class="ico">🏢</div>
+          <div>
+            <h3>Enterprises & Individuals</h3>
+            <p class="muted">SSO، MFA، وامتثال عالمي للفرق والمستخدمين.</p>
+            <a href="{{ url_for('sector', name='companies') }}">Explore &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="block">
+      <h2>Why VeriQuantum</h2>
+      <div class="grid-3">
+        <div class="card feature">
+          <h3>Security first</h3>
+          <ul class="muted">
+            <li><span class="tick">✔</span>Post-quantum cryptography & strict CSP</li>
+            <li><span class="tick">✔</span>Liveness & anti-deepfake defenses</li>
+            <li><span class="tick">✔</span>Audit trails & anomaly alerts</li>
+          </ul>
+        </div>
+        <div class="card feature">
+          <h3>Built for scale</h3>
+          <ul class="muted">
+            <li><span class="tick">✔</span>Multi-tenant & policy-driven access</li>
+            <li><span class="tick">✔</span>SCIM / SSO / OIDC integrations</li>
+            <li><span class="tick">✔</span>Async webhooks & billing automation</li>
+          </ul>
+        </div>
+        <div class="card feature">
+          <h3>Compliance</h3>
+          <ul class="muted">
+            <li><span class="tick">✔</span>GDPR, ISO 27001 practices</li>
+            <li><span class="tick">✔</span>Data minimization & encryption-at-rest</li>
+            <li><span class="tick">✔</span>Regional policies & geo-fencing</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="block">
+      <div class="cta-band">
+        <div>
+          <b>Ready to deploy?</b>
+          <div class="muted">فعّل 2FA، اضبط البريد والتنبيهات، وابدأ اختبار الهوية على قطاعاتك.</div>
+        </div>
+        <div>
+          <a class="btn btn-primary" href="{{ url_for('twofa_setup_get') if session.get('user') else url_for('login_get') }}">Enable 2FA</a>
+          <a class="btn btn-ghost" href="{{ url_for('admin_alerts_get') if session.get('is_admin') else url_for('dashboard') }}">Configure Alerts</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
 {% endblock %}
