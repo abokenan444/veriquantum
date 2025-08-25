@@ -1000,3 +1000,6 @@ def _util_ctx():
         except Exception:
             return "#"
     return dict(safe_url=safe_url)
+    @app.get("/webauthn/about")
+def webauthn_about():
+    return render_template("webauthn_about.html")
