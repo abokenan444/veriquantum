@@ -2,6 +2,7 @@ from flask import (
     Flask, render_template, request, redirect, url_for, session,
     jsonify, abort, make_response, flash
 )
+from flasgger import Swagger
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
