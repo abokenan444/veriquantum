@@ -1,4 +1,4 @@
-from flask import (
+ from flask import (
     Flask, render_template, request, redirect, url_for, session,
     jsonify, abort, make_response, flash
 )
@@ -785,7 +785,13 @@ def ready():
         return jsonify(status="ready"), 200
     except Exception as e:
         return jsonify(status="degraded", error=str(e)), 503
-
+#---------
+@app.errorhandler(403)
+def err_403(e): return render_template("error.html", code=403, message="Forbidden"), 403
+@app.errorhandler(404)
+def err_404(e): return render_template("error.html", code=404, message="Not found"), 404
+@app.errorhandler(500)
+def err_500(e): return render_template("error.html", code=500, message="Internal Server Error"), 500
 # -----------------------------------------------------------------------------
 # if __name__ == '__main__':  (يتم التشغيل عبر gunicorn على Render)
 # -----------------------------------------------------------------------------
