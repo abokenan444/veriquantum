@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Passkeys & Security Keys — How it works{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Use Passkeys / Security Keys with VeriQuantum</h2>
+  <ol>
+    <li>Create an account (Register) and log in once with password.</li>
+    <li>Open <b>Settings → Security</b> and choose <b>Add Security Key (WebAuthn)</b>.</li>
+    <li>Follow the browser prompt to register a device (Face/Touch ID, YubiKey, etc.).</li>
+    <li>Next time, choose <b>Login with Passkey</b> to authenticate passwordless.</li>
+  </ol>
+  <p style="color:#475569">Passkeys are phishing-resistant and protected by your device’s secure hardware.</p>
+</div>
+{% endblock %}
