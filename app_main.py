@@ -2,7 +2,6 @@ from flask import (
     Flask, render_template, request, redirect, url_for, session,
     jsonify, abort, make_response, flash
 )
-from flasgger import Swagger
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -11,12 +10,22 @@ import os, smtplib, base64, requests, pyotp, qrcode, stripe, json
 from io import BytesIO
 from datetime import datetime, time as dtime, timedelta
 
+# Swagger (تأكد أن flasgger موجودة في requirements.txt)
+from flasgger import Swagger
+
+# Rate limiting
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# Ready check عبر SQL
+from sqlalchemy import text
+
 from utils.db import (
-    init_db, db_health, SessionLocal,
+    init_db, db_health, SessionLocal, engine,
     User, Setting, Policy, AlertLog, AuditLog,
     Organization, Membership, Country, ThemeSetting,
     Plan, Subscription, Invoice, BankTransferRequest,
-    LegalPage, Sector, OrgPermission
+    LegalPage, Sector, OrgPermission, WebAuthnCredential
 )
 
 # -----------------------------------------------------------------------------
@@ -24,10 +33,15 @@ from utils.db import (
 # -----------------------------------------------------------------------------
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret")
+
+# قاعدة البيانات والجداول
 init_db()
 
 # Swagger UI
 swagger = Swagger(app)
+
+# Rate Limiter (افتراضي 200 طلب بالدقيقة لكل IP)
+limiter = Limiter(get_remote_address, app=app, default_limits=["200/minute"])
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
@@ -50,6 +64,10 @@ def _from_b64u(s: str) -> bytes:
     s = s + "=" * (-len(s) % 4)
     return urlsafe_b64decode(s.encode('utf-8'))
 
+def app_base_url() -> str:
+    s = get_settings()
+    return (s.app_base_url if s and s.app_base_url else os.getenv("APP_BASE_URL", "http://localhost:5000")).rstrip("/")
+
 def _rp_info():
     base = app_base_url()
     host = urlparse(base).hostname or "localhost"
@@ -59,8 +77,6 @@ def _rp_info():
 
 def _user_entity(u):
     return PublicKeyCredentialUserEntity(id=str(u.id).encode('utf-8'), name=u.username, display_name=u.username)
-
-
 
 # -----------------------------------------------------------------------------
 # Helpers
@@ -88,10 +104,6 @@ def admin_required(f):
 def get_settings():
     with SessionLocal() as db:
         return db.get(Setting, 1)
-
-def app_base_url() -> str:
-    s = get_settings()
-    return (s.app_base_url if s and s.app_base_url else os.getenv("APP_BASE_URL", "http://localhost:5000")).rstrip("/")
 
 def send_email(to_email: str, subject: str, html: str):
     s = get_settings()
@@ -143,12 +155,13 @@ def security_headers(resp):
     resp.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "img-src 'self' data: https://*.stripe.com; "
-        "script-src 'self' https://js.stripe.com; "
-        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' https://js.stripe.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
         "frame-src https://js.stripe.com https://hooks.stripe.com; "
         "connect-src 'self' https://api.stripe.com; "
         "frame-ancestors 'none'; base-uri 'self';"
     )
+    resp.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
     resp.headers["X-Frame-Options"] = "DENY"
     resp.headers["X-Content-Type-Options"] = "nosniff"
     resp.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -165,19 +178,24 @@ def index():
 # -----------------------------------------------------------------------------
 # Legal (list + dynamic)
 # -----------------------------------------------------------------------------
-# alias public path /legal -> same view, endpoint name: legal_list_get
+# مسار عام /legal بنفس اسم الـendpoint الذي تشير إليه القوالب
 @app.get("/legal", endpoint="legal_list_get")
 def legal_list_public():
-    return legal_list_get()
-@app.route("/admin/legal", methods=["GET"], endpoint="admin_legal_list")
-def legal_list_get():
-    """قائمة الصفحات القانونية في لوحة الإدارة."""
     pages = [
-        {"title": "Privacy Policy", "url": "/privacy"},
-        {"title": "Terms & Conditions", "url": "/terms"},
-        {"title": "GDPR Compliance", "url": "/gdpr"},
+        {"title": "Privacy Policy", "url": url_for("privacy")},
+        {"title": "Terms & Conditions", "url": url_for("terms")},
+        {"title": "GDPR Compliance", "url": url_for("gdpr")},
     ]
-    # القالب الموجود لديك هو admin_legal_list.html
+    return render_template("legal_list.html", pages=pages)
+
+# قائمة داخل لوحة التحكم
+@app.route("/admin/legal", methods=["GET"], endpoint="admin_legal_list")
+def legal_list_admin():
+    pages = [
+        {"title": "Privacy Policy", "url": url_for("privacy")},
+        {"title": "Terms & Conditions", "url": url_for("terms")},
+        {"title": "GDPR Compliance", "url": url_for("gdpr")},
+    ]
     return render_template("admin_legal_list.html", pages=pages)
 
 @app.get("/legal/<slug>")
@@ -187,6 +205,7 @@ def legal_page(slug):
     if not p:
         abort(404)
     return render_template("legal_dynamic.html", p=p)
+
 @app.get("/privacy")
 def privacy():
     with SessionLocal() as db:
@@ -204,6 +223,7 @@ def gdpr():
     with SessionLocal() as db:
         p = db.query(LegalPage).filter(LegalPage.slug=="gdpr").first()
     return render_template("legal_dynamic.html", p=p) if p else render_template("gdpr.html")
+
 # -----------------------------------------------------------------------------
 # Auth
 # -----------------------------------------------------------------------------
@@ -211,6 +231,7 @@ def gdpr():
 def login_get():
     return render_template("login.html", error=None)
 
+@limiter.limit("10/minute")
 @app.post("/login")
 def login_post():
     username = request.form.get("username", "").strip()
@@ -288,6 +309,7 @@ def twofa_verify_get():
         return redirect(url_for("login_get"))
     return render_template("twofa_verify.html", error=None)
 
+@limiter.limit("10/minute")
 @app.post("/2fa/verify")
 def twofa_verify_post():
     if not session.get("pre_2fa_uid"):
@@ -310,6 +332,7 @@ def twofa_verify_post():
 def forgot_get():
     return render_template("forgot_password.html", info=None, error=None)
 
+@limiter.limit("5/minute")
 @app.post("/forgot")
 def forgot_post():
     email = request.form.get("email", "").strip().lower()
@@ -702,7 +725,6 @@ def billing_invoice_pdf(invoice_id):
         org = db.get(Organization, inv.org_id) if inv.org_id else None
         user = db.get(User, session["uid"]) if session.get("uid") else None
 
-    # استخدم قالبك إن كان موجودًا، وإلا أعرض نسخة بسيطة
     template_name = "invoice_pdf.html" if os.path.exists(os.path.join("templates", "invoice_pdf.html")) else "admin_finance.html"
     html = render_template(template_name, invoice=inv, org=org, user=user)
     pdf_bytes = render_pdf_from_html(html)
@@ -812,58 +834,59 @@ def health():
 
 @app.route("/ready", methods=["GET", "HEAD"])
 def ready():
-    # فحص خفيف للجاهزية
     try:
-        _ = db_health()
+        with engine.connect() as c:
+            c.execute(text("SELECT 1"))
         return jsonify(status="ready"), 200
     except Exception as e:
         return jsonify(status="degraded", error=str(e)), 503
-#---------
+
+# -----------------------------------------------------------------------------
+# Error pages
+# -----------------------------------------------------------------------------
 @app.errorhandler(403)
-def err_403(e): return render_template("error.html", code=403, message="Forbidden"), 403
+def err_403(e): 
+    return render_template("error.html", code=403, msg="Forbidden", message="Forbidden"), 403
+
 @app.errorhandler(404)
-def err_404(e): return render_template("error.html", code=404, message="Not found"), 404
+def err_404(e): 
+    return render_template("error.html", code=404, msg="Not found", message="Not found"), 404
+
 @app.errorhandler(500)
-def err_500(e): return render_template("error.html", code=500, message="Internal Server Error"), 500
-# -----------------------------------------------------------------------------
-# if __name__ == '__main__':  (يتم التشغيل عبر gunicorn على Render)
-# -----------------------------------------------------------------------------
-# if __name__ == "__main__":
-#     port = int(os.getenv("PORT", "5000"))
-#     app.run(host="0.0.0.0", port=port, debug=True)
+def err_500(e): 
+    return render_template("error.html", code=500, msg="Internal Server Error", message="Internal Server Error"), 500
 
-
-# ----- Security Keys (UI) -----
+# -----------------------------------------------------------------------------
+# Security Keys (UI) + WebAuthn endpoints
+# -----------------------------------------------------------------------------
 @app.get("/account/security-keys")
 @login_required
 def account_security_keys():
     return render_template("security_keys.html")
 
-# ----- Registration (begin/options) -----
+# Registration (begin/options)
 @app.post("/webauthn/reg/options")
 @login_required
 def webauthn_reg_options():
-    """Register a new passkey
----
-responses:
-  200:
-    description: options
-"""
+    """
+    Register a new passkey
+    ---
+    responses:
+      200:
+        description: options
+    """
     with SessionLocal() as db:
         u = db.query(User).filter(User.id==session["uid"]).first()
         if not u: abort(401)
         server, rp_id = _rp_info()
-        # Exclude existing credentials
         existing = db.query(WebAuthnCredential).filter(WebAuthnCredential.user_id==u.id).all()
-        excludes = [{"id": cred.credential_id, "type": "public-key"} for cred in existing] if existing else []
-        user = _user_entity(u)
         registration_data, state = server.register_begin(
-            user,
+            _user_entity(u),
             credentials=[{"id": _from_b64u(c.credential_id), "transports": []} for c in existing] if existing else [],
             user_verification="preferred"
         )
         session["webauthn_reg_state"] = state
-        # Convert bytes to b64url strings
+        # b64url encode
         registration_data["publicKey"]["challenge"] = _b64u(registration_data["publicKey"]["challenge"])
         registration_data["publicKey"]["user"]["id"] = _b64u(registration_data["publicKey"]["user"]["id"])
         if "excludeCredentials" in registration_data["publicKey"]:
@@ -871,16 +894,17 @@ responses:
                 c["id"] = _b64u(c["id"])
         return jsonify(registration_data)
 
-# ----- Registration (verify) -----
+# Registration (verify)
 @app.post("/webauthn/reg/verify")
 @login_required
 def webauthn_reg_verify():
-    """Verify passkey attestation
----
-responses:
-  200:
-    description: result
-"""
+    """
+    Verify passkey attestation
+    ---
+    responses:
+      200:
+        description: result
+    """
     data = request.get_json(force=True)
     try:
         server, rp_id = _rp_info()
@@ -898,56 +922,44 @@ responses:
     except Exception as e:
         return jsonify(ok=False, error=str(e))
 
-# ----- Authentication (begin/options) -----
+# Authentication (begin/options)
 @app.post("/webauthn/auth/options")
 def webauthn_auth_options():
-    """Begin authentication
----
-parameters:
-  - in: query
-    name: session_id
-    schema: {type: integer}
-responses:
-  200:
-    description: options
-"""
-    session_id = request.args.get("session_id")
+    """
+    Begin authentication
+    ---
+    responses:
+      200:
+        description: options
+    """
     uid = session.get("uid")
     with SessionLocal() as db:
-        if uid:
-            user = db.query(User).filter(User.id==uid).first()
-        else:
-            user = None
-        # If part of a biometric session, we don't require logged-in
+        user = db.query(User).filter(User.id==uid).first() if uid else None
         cred_q = db.query(WebAuthnCredential)
-        if user:
-            creds = cred_q.filter(WebAuthnCredential.user_id==user.id).all()
-        else:
-            # No user in session; require session_id to link to an org/user (optional)
-            creds = cred_q.all()
+        creds = cred_q.filter(WebAuthnCredential.user_id==user.id).all() if user else cred_q.all()
         if not creds:
             return jsonify(error="no-credentials"), 400
         server, rp_id = _rp_info()
         allow = [{"id": _from_b64u(c.credential_id), "type": "public-key"} for c in creds]
         auth_data, state = server.authenticate_begin(allow, user_verification="preferred")
         session["webauthn_auth_state"] = state
-        session["webauthn_session_target"] = int(session_id) if session_id else None
-        # b64u encode
+        # b64url encode
         auth_data["publicKey"]["challenge"] = _b64u(auth_data["publicKey"]["challenge"])
         if "allowCredentials" in auth_data["publicKey"]:
             for c in auth_data["publicKey"]["allowCredentials"]:
                 c["id"] = _b64u(c["id"])
         return jsonify(auth_data)
 
-# ----- Authentication (verify) -----
+# Authentication (verify)
 @app.post("/webauthn/auth/verify")
 def webauthn_auth_verify():
-    """Verify authentication assertion
----
-responses:
-  200:
-    description: result
-"""
+    """
+    Verify authentication assertion
+    ---
+    responses:
+      200:
+        description: result
+    """
     data = request.get_json(force=True)
     try:
         server, rp_id = _rp_info()
@@ -966,32 +978,16 @@ responses:
             )
             cred.sign_count = max(cred.sign_count or 0, auth_data.new_sign_count or 0)
             db.add(cred); db.commit()
-        # If tied to a biometric session, finalize it
-        target = session.pop("webauthn_session_target", None)
-        if target:
-            finalize_biometric_session(target, "verified", session.get("uid"), {"method":"passkey"})
-            return jsonify(ok=True, redirect=url_for("dashboard"))
         return jsonify(ok=True)
     except Exception as e:
         return jsonify(ok=False, error=str(e))
 
+# صفحة تعريف بسيطة عن WebAuthn (قالب اختياري)
+@app.get("/webauthn/about")
+def webauthn_about():
+    return render_template("webauthn_about.html")
 
-@app.get("/admin/sessions")
-@login_required
-@admin_required
-def admin_sessions_get():
-    with SessionLocal() as db:
-        sessions = db.query(BiometricSession).order_by(BiometricSession.created_at.desc()).limit(500).all()
-    return render_template("admin_sessions.html", sessions=sessions)
-
-@app.post("/admin/sessions/force")
-@login_required
-@admin_required
-def admin_sessions_force():
-    sid = int(request.form.get("id"))
-    result = request.form.get("result","failed")
-    ok = finalize_biometric_session(sid, result, session.get("uid"), {"forced": True})
-    return redirect(url_for("admin_sessions_get"))
+# أدوات مساعدة للقوالب (لا تكسر القوالب عند endpoint مفقود)
 @app.context_processor
 def _util_ctx():
     def safe_url(endpoint, **values):
@@ -1000,6 +996,3 @@ def _util_ctx():
         except Exception:
             return "#"
     return dict(safe_url=safe_url)
-    @app.get("/webauthn/about")
-def webauthn_about():
-    return render_template("webauthn_about.html")
