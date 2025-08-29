@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}API Clients{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>API Clients</h2>
+  <form method="post" action="{{ url_for('admin_api_clients_create') }}" style="margin-bottom:14px;">
+    <div class="grid">
+      <input name="name" placeholder="Client name" required>
+      <input name="allowed_origins" placeholder="Allowed origins (comma-separated, optional)">
+      <button class="btn">Create</button>
+    </div>
+  </form>
+
+  <table class="table">
+    <thead><tr><th>ID</th><th>Name</th><th>API Key</th><th>Allowed origins</th><th>Active</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.name }}</td>
+        <td><code>{{ r.api_key }}</code></td>
+        <td>{{ r.allowed_origins or '-' }}</td>
+        <td>{{ 'Yes' if r.is_active else 'No' }}</td>
+        <td style="white-space:nowrap;">
+          <form method="post" action="{{ url_for('admin_api_clients_toggle') }}" style="display:inline;">
+            <input type="hidden" name="id" value="{{ r.id }}">
+            <button class="btn btn-secondary">{{ 'Disable' if r.is_active else 'Enable' }}</button>
+          </form>
+          <form method="post" action="{{ url_for('admin_api_clients_delete') }}" style="display:inline;" onsubmit="return confirm('Delete client?');">
+            <input type="hidden" name="id" value="{{ r.id }}">
+            <button class="btn" style="background:#dc3545;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="muted">Use header <code>Authorization: Bearer &lt;API_KEY&gt;</code> with the Webhook endpoints.</p>
+</div>
+{% endblock %}
