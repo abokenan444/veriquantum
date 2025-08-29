@@ -1,0 +1,3 @@
+Contact: mailto:security@veriquantum.com
+Preferred-Languages: en,ar
+Policy: https://veriquantum.onrender.com/legal/security
